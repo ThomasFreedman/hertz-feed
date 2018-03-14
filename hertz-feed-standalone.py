@@ -54,11 +54,15 @@ def get_hertz_feed(reference_timestamp, current_timestamp, period_days, phase_da
     You can use this formula for an alternative HERTZ asset!
     Be aware though that extreme values for amplitude|period will create high volatility which could cause black swan events. BSIP 18 should help, but best tread carefully!
     """
-    hz_reference_timestamp = pendulum.parse(reference_timestamp).timestamp() # Retrieving the Bitshares2.0 genesis block timestamp
-    hz_period = pendulum.SECONDS_PER_DAY * period_days
-    hz_phase = pendulum.SECONDS_PER_DAY * phase_days
-    hz_waveform = math.sin(((((current_timestamp - (hz_reference_timestamp + hz_phase))/hz_period) % 1) * hz_period) * ((2*math.pi)/hz_period)) # Only change for an alternative HERTZ ABA.
-    hz_value = reference_asset_value + ((amplitude * reference_asset_value) * hz_waveform)
+    try:
+        hz_reference_timestamp = pendulum.parse(reference_timestamp).timestamp() # Retrieving the Bitshares2.0 genesis block timestamp
+        hz_period = pendulum.SECONDS_PER_DAY * period_days
+        hz_phase = pendulum.SECONDS_PER_DAY * phase_days
+        hz_waveform = math.sin(((((current_timestamp - (hz_reference_timestamp + hz_phase))/hz_period) % 1) * hz_period) * ((2*math.pi)/hz_perio$
+        hz_value = reference_asset_value + ((amplitude * reference_asset_value) * hz_waveform)
+    except:
+        logging.info("Error in get_hertz_feed, skipping publish")
+        return -9897675453
     return hz_value
 
 
@@ -78,31 +82,6 @@ def publish_hertz_feed(api, witness):
     hertz_reference_asset_value = 1.00 # $1.00 USD, not much point changing as the ratio will be the same.
 
     # Calculate the current value of Hertz in USD
-    hertz_value = get_hertz_feed(hertz_reference_timestamp, hertz_current_timestamp, hertz_period_days, hertz_phase_days, hertz_reference_asset_value, hertz_amplitude)
-    hertz = Price(hertz_value, "USD/HERTZ") # Limit the hertz_usd decimal places & convert from float.
-
-    # Calculate HERTZ price in BTS (THIS IS WHAT YOU PUBLISH!)
-    hertz_bts = price.as_base("BTS") * hertz.as_quote("HERTZ")
-
-    hertz_core_exchange_rate = 0.80 # 20% offset, CER > Settlement!
-    hertz_cer = hertz_bts * hertz_core_exchange_rate
-
-    # Log a few outputs
-    logging.info("Price of HERTZ in USD: {}".format(hertz))
-    logging.info("Price of HERTZ in BTS: {}".format(hertz_bts))
-    logging.info("Price of BTS in USD: {}".format(price))
-    logging.info("Price of USD in BTS: {}".format(price.invert()))
-
-    # Log and publish the price feed to the BTS DEX
-    feed = pprint.pformat( api.publish_price_feed(
-        "HERTZ",
-        hertz_bts,
-        cer=hertz_cer, # Setting in line with Wackou's price feed scripts
-        mssr=110,
-        mcr=200,
-        account=witness)
-        )
-#    logging.info(feed)		Uncomment to see raw info in log file
 
 
 # Get sensitive input such as password or private key from user.
@@ -111,7 +90,36 @@ def get_secret_input(prompt):
     secret = ""
     while not secret:
         print(prompt)
-        in1 = getpass()
+        in1 = getpass()    hertz_value = get_hertz_feed(hertz_reference_timestamp, hertz_current_timestamp, hertz_period_days, hertz_phase_days, hertz_reference_asset_$
+    if not hertz_value == -9897675453:
+        try:
+            hertz = Price(hertz_value, "USD/HERTZ") # Limit the hertz_usd decimal places & convert from float.
+
+            # Calculate HERTZ price in BTS (THIS IS WHAT YOU PUBLISH!)
+            hertz_bts = price.as_base("BTS") * hertz.as_quote("HERTZ")
+
+            hertz_core_exchange_rate = 0.80 # 20% offset, CER > Settlement!
+            hertz_cer = hertz_bts * hertz_core_exchange_rate
+
+            # Log a few outputs
+            logging.info("Price of HERTZ in USD: {}".format(hertz))
+            logging.info("Price of HERTZ in BTS: {}".format(hertz_bts))
+            logging.info("Price of BTS in USD: {}".format(price))
+            logging.info("Price of USD in BTS: {}".format(price.invert()))
+
+            # Log and publish the price feed to the BTS DEX
+            feed = pprint.pformat( api.publish_price_feed(
+                "HERTZ",
+                hertz_bts,
+                cer=hertz_cer, # Setting in line with Wackou's price feed scripts
+                mssr=110,
+                mcr=200,
+                account=witness)
+                )
+            # logging.info(feed)  # Uncomment to add raw data to log
+        except:
+            logging.info("Error in publish_hertz_feed, skipping publish")
+
         print("Enter it again to verify.")
         in2 = getpass()		# Only drawback is "Password:" prompt
         if in1 == in2:
