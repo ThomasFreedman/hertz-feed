@@ -82,15 +82,7 @@ def publish_hertz_feed(api, witness):
     hertz_reference_asset_value = 1.00 # $1.00 USD, not much point changing as the ratio will be the same.
 
     # Calculate the current value of Hertz in USD
-
-
-# Get sensitive input such as password or private key from user.
-# Won't exit until both inputs match.
-def get_secret_input(prompt):
-    secret = ""
-    while not secret:
-        print(prompt)
-        in1 = getpass()    hertz_value = get_hertz_feed(hertz_reference_timestamp, hertz_current_timestamp, hertz_period_days, hertz_phase_days, hertz_reference_asset_$
+    hertz_value = get_hertz_feed(hertz_reference_timestamp, hertz_current_timestamp, hertz_period_days, hertz_phase_days, hertz_reference_asset_$
     if not hertz_value == -9897675453:
         try:
             hertz = Price(hertz_value, "USD/HERTZ") # Limit the hertz_usd decimal places & convert from float.
@@ -120,8 +112,16 @@ def get_secret_input(prompt):
         except:
             logging.info("Error in publish_hertz_feed, skipping publish")
 
+                                 
+# Get sensitive input such as password or private key from user.
+# Won't exit until both inputs match.
+def get_secret_input(prompt):
+    secret = ""
+    while not secret:
+        print(prompt)
+        in1 = getpass()    	# Only drawback is "Password:" prompt
         print("Enter it again to verify.")
-        in2 = getpass()		# Only drawback is "Password:" prompt
+        in2 = getpass()	
         if in1 == in2:
             secret = in1
             print("Now add it to the code to avoid future prompting.\n")
