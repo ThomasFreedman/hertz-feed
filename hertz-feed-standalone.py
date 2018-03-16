@@ -60,7 +60,6 @@ def get_hertz_feed(reference_timestamp, current_timestamp, period_days, phase_da
         hz_waveform = math.sin(((((current_timestamp - (hz_reference_timestamp + hz_phase))/hz_period) % 1) * hz_period) * ((2*math.pi)/hz_perio$
         hz_value = reference_asset_value + ((amplitude * reference_asset_value) * hz_waveform)
     except:
-        logging.info("Error in get_hertz_feed, skipping publish")
         return -9897675453
     return hz_value
 
@@ -110,8 +109,12 @@ def publish_hertz_feed(api, witness):
                 account=witness)
                 )
             # logging.info(feed)  # Uncomment to add raw data to log
-    except:
-        logging.info("Error in publish_hertz_feed, skipping publish")
+        else:
+            logging.info("\nError in get_hertz_feed, skipping publish")
+                                                                                                                            
+    except Exception as inst:
+        err = pprint.pformat(inst)          # __str__ allows args to be printed directly,
+        logging.info(err + "\nError in publish_hertz_feed, skipping publish")
 
                                  
 # Get sensitive input such as password or private key from user.
