@@ -26,7 +26,6 @@ ACNT	= ""				# ADD YOUR WITNESS ACCOUNT NAME HERE
 FREQ	= 17 * 60			# Calc & publish feed every 17 minutes
 LEVEL	= logging.INFO			# Set logging.DEBUG for gobs of data
 NODES	= [
-    "ws://localhost:8090/", 		# This server's witness node
     "wss://bitshares.crypto.fans/ws",	#location: "Munich, Germany"
     "wss://bit.btsabc.org/ws",		#location: "Hong Kong"
     "wss://bitshares.apasia.tech/ws",	#location: "Bangkok, Thailand"
@@ -68,23 +67,25 @@ def get_hertz_feed(reference_timestamp, current_timestamp, period_days, phase_da
 
 def publish_hertz_feed(api, witness):
     # Getting the value of USD in BTS
-    market = Market("USD:BTS") # Set reference market to USD:BTS
-    price = market.ticker()["quoteSettlement_price"] # Get Settlement price of USD
-    price.invert() # Switching from quantity of BTS per USD to USD price of one BTS.
+    try:
+        market = Market("USD:BTS") # Set reference market to USD:BTS
+        price = market.ticker()["quoteSettlement_price"] # Get Settlement price of USD
+        price.invert() # Switching from quantity of BTS per USD to USD price of one BTS.
 
-    #Hertz variables:
-    #Change only for alternative Algorithm Based Assets.
-    hertz_reference_timestamp = "2015-10-13T14:12:24+00:00" # Bitshares 2.0 genesis block timestamp
-    hertz_current_timestamp = pendulum.now().timestamp() # Current timestamp for reference within the hertz script
-    hertz_amplitude = 0.14 # 14% fluctuating the price feed $+-0.14 (2% per day)
-    hertz_period_days = 28 # Aka wavelength, time for one full SIN wave cycle.
-    hertz_phase_days = 0.908056 # Time offset from genesis till the first wednesday, to set wednesday as the primary Hz day.
-    hertz_reference_asset_value = 1.00 # $1.00 USD, not much point changing as the ratio will be the same.
+        #Hertz variables:
+        #Change only for alternative Algorithm Based Assets.
+        hertz_reference_timestamp = "2015-10-13T14:12:24+00:00" # Bitshares 2.0 genesis block timestamp
+        hertz_current_timestamp = pendulum.now().timestamp() # Current timestamp for reference within the hertz script
+        hertz_amplitude = 0.14 # 14% fluctuating the price feed $+-0.14 (2% per day)
+        hertz_period_days = 28 # Aka wavelength, time for one full SIN wave cycle.
+        hertz_phase_days = 0.908056 # Time offset from genesis till the first wednesday, to set wednesday as the primary Hz day.
+        hertz_reference_asset_value = 1.00 # $1.00 USD, not much point changing as the ratio will be the same.
 
-    # Calculate the current value of Hertz in USD
-    hertz_value = get_hertz_feed(hertz_reference_timestamp, hertz_current_timestamp, hertz_period_days, hertz_phase_days, hertz_reference_asset_$
-    if not hertz_value == -9897675453:
-        try:
+        # Calculate the current value of Hertz in USD
+        hertz_value = get_hertz_feed(hertz_reference_timestamp, hertz_current_timestamp, hertz_period_days,
+                                     hertz_phase_days, hertz_reference_asset_value, hertz_amplitude)
+                                                                                                                            
+        if not hertz_value == -9897675453:
             hertz = Price(hertz_value, "USD/HERTZ") # Limit the hertz_usd decimal places & convert from float.
 
             # Calculate HERTZ price in BTS (THIS IS WHAT YOU PUBLISH!)
@@ -109,8 +110,8 @@ def publish_hertz_feed(api, witness):
                 account=witness)
                 )
             # logging.info(feed)  # Uncomment to add raw data to log
-        except:
-            logging.info("Error in publish_hertz_feed, skipping publish")
+    except:
+        logging.info("Error in publish_hertz_feed, skipping publish")
 
                                  
 # Get sensitive input such as password or private key from user.
