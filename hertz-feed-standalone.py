@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+# NOTE: This script requires the API nodes used to have the market history plugin enabled
+#       to obtain the quoteSettlement_price. 
+#  See https://github.com/xeroc/python-bitshares/issues/53#event-1530147512
+
 from getpass import getpass
 from bitshares.asset import Asset
 from bitshares import BitShares
@@ -16,30 +20,31 @@ import logging
 import pendulum
 
 # Constants
-HOME	= "/home/admin/"	# The local account this runs under
-WPW     = ""			# ADD YOUR PASSWORD FOR SQLite WALLET HERE
-KEY	= ""			# ADD YOUR PRIVATE KEY FOR WITNESS TO PUBLISH
-SQL	= HOME + ".local/share/bitshares/bitshares.sqlite"
-LOG	= HOME + "scripts/hertz/hertz.log"
+HOME	= "/home/acccnt/"  # The local account this script runs under
+WPW     = ""			   # ADD YOUR PASSWORD FOR SQLite WALLET HERE
+KEY     = ""			   # ADD YOUR PRIVATE KEY FOR WITNESS TO PUBLISH
+SQL	    = HOME + ".local/share/bitshares/bitshares.sqlite"
+LOG	    = HOME + "hertz.log"
 FMT     = ("%(asctime)s %(message)s", "%m/%d/%Y %H:%M:%S")
 ACNT	= ""				# ADD YOUR WITNESS ACCOUNT NAME HERE
 FREQ	= 17 * 60			# Calc & publish feed every 17 minutes
-LEVEL	= logging.INFO			# Set logging.DEBUG for gobs of data
+LEVEL	= logging.INFO		# Set logging.DEBUG for gobs of data
 NODES	= [
-    "wss://bitshares.crypto.fans/ws",	#location: "Munich, Germany"
-    "wss://bit.btsabc.org/ws",		#location: "Hong Kong"
-    "wss://bitshares.apasia.tech/ws",	#location: "Bangkok, Thailand"
-    "wss://japan.bitshares.apasia.tech/ws", #location: "Tokyo, Japan"
-    "wss://api.bts.blckchnd.com"	#location: "Falkenstein, Germany"
-    "wss://openledger.hk/ws",		#location: "Hong Kong"
-    "wss://bitshares.dacplay.org/ws",	#location:  "Hangzhou, China"
-    "wss://bitshares-api.wancloud.io/ws", #location:  "China"
-    "wss://ws.gdex.top",		#location: "China"
-    "wss://dex.rnglab.org",		#location: "Netherlands"
-    "wss://dexnode.net/ws",		#location: "Dallas, USA"
-    "wss://kc-us-dex.xeldal.com/ws",	#location: "Kansas City, USA"
-    "wss://la.dexnode.net/ws",		#location: "Los Angeles, USA"
-    "wss://btsza.co.za:8091/ws",	#location: "Cape Town, South Africa"
+    "wss://bts.proxyhosts.info/wss"    # Known to have history plugin enabled
+#    "wss://bitshares.crypto.fans/ws",	#location: "Munich, Germany"
+#    "wss://bit.btsabc.org/ws",		#location: "Hong Kong"
+#    "wss://bitshares.apasia.tech/ws",	#location: "Bangkok, Thailand"
+#    "wss://japan.bitshares.apasia.tech/ws", #location: "Tokyo, Japan"
+#    "wss://api.bts.blckchnd.com"	#location: "Falkenstein, Germany"
+#    "wss://openledger.hk/ws",		#location: "Hong Kong"
+#    "wss://bitshares.dacplay.org/ws",	#location:  "Hangzhou, China"
+#    "wss://bitshares-api.wancloud.io/ws", #location:  "China"
+#    "wss://ws.gdex.top",		#location: "China"
+#    "wss://dex.rnglab.org",		#location: "Netherlands"
+#    "wss://dexnode.net/ws",		#location: "Dallas, USA"
+#    "wss://kc-us-dex.xeldal.com/ws",	#location: "Kansas City, USA"
+#    "wss://la.dexnode.net/ws",		#location: "Los Angeles, USA"
+#    "wss://btsza.co.za:8091/ws",	#location: "Cape Town, South Africa"
     ]
 
 API = BitShares(NODES, nobroadcast=False)
@@ -98,6 +103,7 @@ def publish_hertz_feed(api, witness):
             logging.info("Price of HERTZ in BTS: {}".format(hertz_bts))
             logging.info("Price of BTS in USD: {}".format(price))
             logging.info("Price of USD in BTS: {}".format(price.invert()))
+            logging.info("\n")                                                                                                                              
 
             # Log and publish the price feed to the BTS DEX
             feed = pprint.pformat( api.publish_price_feed(
@@ -110,11 +116,11 @@ def publish_hertz_feed(api, witness):
                 )
             # logging.info(feed)  # Uncomment to add raw data to log
         else:
-            logging.info("\nError in get_hertz_feed, skipping publish")
+            logging.info("Error in get_hertz_feed, skipping publish")
                                                                                                                             
     except Exception as inst:
         err = pprint.pformat(inst)          # __str__ allows args to be printed directly,
-        logging.info(err + "\nError in publish_hertz_feed, skipping publish")
+        logging.info(err + "Error in publish_hertz_feed, skipping publish")
 
                                  
 # Get sensitive input such as password or private key from user.
